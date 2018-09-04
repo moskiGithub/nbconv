@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
+import re
 import io
 import hashlib
 import nbconvert.resources
@@ -126,6 +127,7 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
             if self._hash(custom_css_filename) != self._default_css_hash:
                 with io.open(custom_css_filename, encoding='utf-8') as f:
                     header.append(f.read())
+        print(header)
         header = self._compressCSS(header)
         return header
 
@@ -135,19 +137,24 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
         with open(filename, 'rb') as f:
             md5.update(f.read())
         return md5.digest()
-    def _compressCSS(css):
-        ignorePattern = re.compile(r'\s*\:\s*', re.IGNORECASE)
-        css = ignorePattern.sub(':', css)
-
-        ignorePattern = re.compile(r';?\s*\}\s*', re.IGNORECASE)
-        css = ignorePattern.sub('}', css)
-
-        ignorePattern = re.compile(r'\s*\{\s*', re.IGNORECASE)
-        css = ignorePattern.sub('{', css)
-
-        ignorePattern = re.compile(r'\s{2,}', re.IGNORECASE)
-        css = ignorePattern.sub(' ', css)
-
-        ignorePattern = re.compile(r'/\*[\s\S]*?\*/', re.IGNORECASE)
-        css = ignorePattern.sub('',css)
-        return css
+    def _compressCSS(self, csslist):
+        new_css = []
+        for css in (csslist):
+            ignorePattern = re.compile(r'\s*\:\s*', re.IGNORECASE)
+            css = ignorePattern.sub(':', css)
+            ignorePattern = re.compile(r'\s*\,\s*', re.IGNORECASE)
+            css = ignorePattern.sub(',', css)
+ 
+            ignorePattern = re.compile(r';?\s*\}\s*', re.IGNORECASE)
+            css = ignorePattern.sub('}', css)
+ 
+            ignorePattern = re.compile(r'\s*\{\s*', re.IGNORECASE)
+            css = ignorePattern.sub('{', css)
+ 
+            ignorePattern = re.compile(r'\s{2,}', re.IGNORECASE)
+            css = ignorePattern.sub(' ', css)
+ 
+            ignorePattern = re.compile(r'/\*[\s\S]*?\*/', re.IGNORECASE)
+            css = ignorePattern.sub('',css)
+            new_css.append(css)
+        return new_css
