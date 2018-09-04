@@ -1,0 +1,45 @@
+# Use a newer travis environment:
+# https://docs.travis-ci.com/user/trusty-ci-environment/
+# needs these two lines:
+sudo: required
+dist: trusty
+
+language: python
+python:
+    - "nightly"
+    - 3.6
+    - 3.5
+    - 3.4
+    - 2.7
+env:
+  global:
+    - PATH=$TRAVIS_BUILD_DIR/bin:$PATH
+addons:
+  apt:
+    packages:
+    - texlive-latex-extra # we need this for all the latex package we use, recommended is not enough
+    - texlive-generic-recommended # .. and more ...
+    - latex-xcolor # ... and more latex packages
+    - texlive-fonts-recommended # fonts...
+    - cm-super # more fonts
+    - texlive-xetex # latex to pdf converter
+    - inkscape # for svgs in pdf output
+before_install:
+    - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
+install:
+    - wget https://github.com/jgm/pandoc/releases/download/1.19.1/pandoc-1.19.1-1-amd64.deb && sudo dpkg -i pandoc-1.19.1-1-amd64.deb
+    - pip install --upgrade setuptools pip
+    - pip install -f travis-wheels/wheelhouse . codecov coverage
+    - pip install nbconvert[execute,serve,test]
+    - pip install check-manifest
+    - python -m ipykernel.kernelspec --user
+script:
+    - check-manifest
+    # cd so we test the install, not the repo
+    - cd `mktemp -d`
+    - py.test --cov nbconvert -v --pyargs nbconvert
+after_success:
+    - codecov
+matrix:
+    allow_failures:
+        - python: "nightly"
