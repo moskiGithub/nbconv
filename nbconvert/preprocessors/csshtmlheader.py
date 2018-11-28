@@ -127,7 +127,6 @@ class CSSHTMLHeaderPreprocessor(Preprocessor):
             if self._hash(custom_css_filename) != self._default_css_hash:
                 with io.open(custom_css_filename, encoding='utf-8') as f:
                     header.append(f.read())
-        print(header)
         header = self._compressCSS(header)
         return header
 
